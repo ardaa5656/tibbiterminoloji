@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <title>Tıbbi Terminoloji — İnteraktif Ezber Kartları ve Klinik Sözlük</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg-base: #090d16;
+      --bg-surface: #0f172a;
+      --bg-elevated: #1e293b;
+      --bg-card-front: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+      --bg-card-back: linear-gradient(145deg, #1e1b4b 0%, #0f172a 100%);
+      --border-subtle: rgba(148, 163, 184, 0.14);
+      --border-focus: #6366f1;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent: #6366f1;
+      --accent-hover: #818cf8;
+      --accent-soft: rgba(99, 102, 241, 0.15);
+      --emerald: #10b981;
+      --emerald-soft: rgba(16, 185, 129, 0.15);
+      --amber: #f59e0b;
+      --amber-soft: rgba(245, 158, 11, 0.16);
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --shadow-lg: 0 20px 45px -15px rgba(2, 6, 23, 0.75);
+      --transition: 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scrollbar-color: #334155 #090d16;
+      scrollbar-width: thin;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background:
+        radial-gradient(circle at 15% 0%, rgba(99, 102, 241, 0.13), transparent 40%),
+        radial-gradient(circle at 85% 10%, rgba(16, 185, 129, 0.08), transparent 35%),
+        var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100dvh;
+      line-height: 1.55;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: rgba(9, 13, 22, 0.85);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 1rem 1.25rem;
+    }
+
+    .header-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #6366f1, #4338ca);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.55);
+      flex-shrink: 0;
+    }
+
+    .brand-icon svg {
+      width: 24px;
+      height: 24px;
+      color: #ffffff;
+    }
+
+    .brand-title {
+      font-size: clamp(1.1rem, 2vw, 1.35rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      text-wrap: balance;
+    }
+
+    .brand-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .stats-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.85rem;
+      border-radius: 999px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .stats-pill strong {
+      color: var(--text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tab-group {
+      display: inline-flex;
+      background: var(--bg-surface);
+      padding: 0.25rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .tab-btn {
+      appearance: none;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border-radius: 9px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .tab-btn[aria-selected="true"] {
+      background: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+    }
+
+    .main-container {
+      max-width: 1240px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 3rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .toolbar {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 0.85rem;
+      align-items: center;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .search-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 0.9rem;
+      width: 18px;
+      height: 18px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--bg-base);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.7rem 2.4rem 0.7rem 2.6rem;
+      color: var(--text-primary);
+      font: inherit;
+      font-size: 0.92rem;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.22);
+    }
+
+    .clear-search-btn {
+      position: absolute;
+      right: 0.65rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.25rem;
+      border-radius: 6px;
+      display: none;
+    }
+
+    .clear-search-btn.visible {
+      display: inline-flex;
+    }
+
+    .clear-search-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .select-input {
+      background: var(--bg-base);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.7rem 1rem;
+      font: inherit;
+      font-size: 0.9rem;
+      cursor: pointer;
+      min-width: 230px;
+      transition: border-color var(--transition);
+    }
+
+    .select-input:focus {
+      outline: none;
+      border-color: var(--border-focus);
+    }
+
+    .filter-toggle-btn {
+      background: var(--bg-base);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.7rem 1rem;
+      font: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .filter-toggle-btn:hover {
+      border-color: var(--amber);
+      color: var(--text-primary);
+    }
+
+    .filter-toggle-btn[aria-pressed="true"] {
+      background: var(--amber-soft);
+      border-color: var(--amber);
+      color: #fde68a;
+    }
+
+    .view-section {
+      display: none;
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+    .flashcard-layout {
+      max-width: 760px;
+      margin: 0.5rem auto 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .progress-bar-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .progress-track {
+      flex: 1;
+      height: 8px;
+      background: var(--bg-surface);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--emerald));
+      border-radius: 999px;
+      width: 0%;
+      transition: width 260ms ease;
+    }
+
+    .card-scene {
+      perspective: 1400px;
+      width: 100%;
+      min-height: 390px;
+    }
+
+    .flashcard {
+      position: relative;
+      width: 100%;
+      min-height: 390px;
+      transform-style: preserve-3d;
+      transition: transform 560ms cubic-bezier(0.22, 1, 0.36, 1);
+      cursor: pointer;
+      user-select: none;
+      border-radius: 22px;
+    }
+
+    .flashcard:focus-visible {
+      outline: 3px solid var(--accent-hover);
+      outline-offset: 4px;
+    }
+
+    .flashcard.is-flipped {
+      transform: rotateY(180deg);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .flashcard {
+        transition: none;
+      }
+    }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: 22px;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .card-face-front {
+      background: var(--bg-card-front);
+    }
+
+    .card-face-back {
+      background: var(--bg-card-back);
+      transform: rotateY(180deg);
+      border-color: rgba(99, 102, 241, 0.45);
+    }
+
+    .card-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .category-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.8rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      background: var(--accent-soft);
+      color: #c7d2fe;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(15, 23, 42, 0.75);
+      color: var(--text-secondary);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .icon-btn:hover {
+      color: var(--text-primary);
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.18);
+    }
+
+    .icon-btn.fav-active {
+      color: var(--amber);
+      border-color: var(--amber);
+      background: var(--amber-soft);
+    }
+
+    .icon-btn svg {
+      width: 19px;
+      height: 19px;
+    }
+
+    .card-center {
+      text-align: center;
+      margin: auto 0;
+      padding: 1rem 0;
+    }
+
+    .face-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      margin-bottom: 0.65rem;
+      font-weight: 700;
+    }
+
+    .card-term {
+      font-size: clamp(1.85rem, 4vw, 2.75rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      margin-bottom: 0.65rem;
+      text-wrap: balance;
+    }
+
+    .card-reading {
+      display: inline-block;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: #a5b4fc;
+      background: rgba(99, 102, 241, 0.14);
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      border: 1px dashed rgba(129, 140, 248, 0.35);
+    }
+
+    .card-meaning {
+      font-size: clamp(1.25rem, 2.6vw, 1.65rem);
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 1.15rem;
+      text-wrap: balance;
+    }
+
+    .card-breakdown-box {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(129, 140, 248, 0.3);
+      border-radius: var(--radius-md);
+      padding: 0.85rem 1.15rem;
+      display: inline-block;
+      max-width: 92%;
+    }
+
+    .card-breakdown-title {
+      font-size: 0.73rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #94a3b8;
+      margin-bottom: 0.25rem;
+    }
+
+    .card-breakdown-text {
+      font-size: 0.98rem;
+      color: #6ee7b7;
+      font-weight: 600;
+    }
+
+    .card-footer-hint {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(148, 163, 184, 0.1);
+      padding-top: 0.85rem;
+    }
+
+    .deck-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .ctrl-btn {
+      appearance: none;
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 1.35rem;
+      font: inherit;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all var(--transition);
+    }
+
+    .ctrl-btn:hover:not(:disabled) {
+      background: var(--bg-elevated);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .ctrl-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .ctrl-btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #ffffff;
+    }
+
+    .ctrl-btn.primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .kbd-shortcuts {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    kbd {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 5px;
+      padding: 0.1rem 0.4rem;
+      font-family: ui-monospace, monospace;
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+    }
+
+    .dictionary-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .dictionary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+      gap: 1rem;
+    }
+
+    .dict-card {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      transition: border-color var(--transition), transform var(--transition);
+      content-visibility: auto;
+      contain-intrinsic-size: 210px;
+    }
+
+    .dict-card:hover {
+      border-color: rgba(99, 102, 241, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .dict-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.65rem;
+    }
+
+    .dict-term-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .dict-term {
+      font-size: 1.18rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .dict-reading {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.83rem;
+      color: #a5b4fc;
+    }
+
+    .dict-meaning {
+      font-size: 0.95rem;
+      color: #e2e8f0;
+    }
+
+    .dict-breakdown {
+      margin-top: auto;
+      padding-top: 0.65rem;
+      border-top: 1px solid rgba(148, 163, 184, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      font-size: 0.8rem;
+    }
+
+    .dict-root-pill {
+      color: #6ee7b7;
+      font-weight: 600;
+    }
+
+    .dict-cat-tag {
+      font-size: 0.74rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3.5rem 1.5rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px dashed var(--border-subtle);
+      border-radius: var(--radius-lg);
+      color: var(--text-secondary);
+    }
+
+    .empty-state h3 {
+      color: var(--text-primary);
+      margin-bottom: 0.4rem;
+    }
+
+    @media (max-width: 820px) {
+      .toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .select-input,
+      .filter-toggle-btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .card-face {
+        padding: 1.35rem;
+      }
+
+      .card-scene,
+      .flashcard {
+        min-height: 360px;
+      }
+
+      .kbd-shortcuts {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">Tıbbi Terminoloji Atlası</h1>
+          <p class="brand-subtitle">Latince &amp; Grekçe Kökler, Fonetik Okunuşlar ve Klinik Sözlük</p>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <div class="stats-pill" title="Öğrendiklerim / Favoriler">
+          <span>★ Öğrenilen:</span>
+          <strong id="learnedCountLabel">0 / 0</strong>
+        </div>
+
+        <div class="tab-group" role="tablist" aria-label="Çalışma Modları">
+          <button type="button" class="tab-btn" id="tabFlashcards" role="tab" aria-selected="true" aria-controls="viewFlashcards">
+            <span>🎴 Ezber Kartları</span>
+          </button>
+          <button type="button" class="tab-btn" id="tabDictionary" role="tab" aria-selected="false" aria-controls="viewDictionary">
+            <span>📖 Sözlük &amp; Liste</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <section class="toolbar" aria-label="Arama ve Filtreleme">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input
+          type="search"
+          id="searchInput"
+          class="search-input"
+          placeholder="Terim, okunuş, klinik anlam veya kök ara (Örn: kardiyo, böbrek, -itis)..."
+          autocomplete="off"
+        />
+        <button type="button" id="clearSearchBtn" class="clear-search-btn" title="Aramayı temizle" aria-label="Aramayı temizle">✕</button>
+      </div>
+
+      <select id="categorySelect" class="select-input" aria-label="Kategoriye göre filtrele">
+        <option value="ALL">Tüm Sistemler ve Konular</option>
+      </select>
+
+      <button type="button" id="favFilterBtn" class="filter-toggle-btn" aria-pressed="false">
+        <span>★ Sadece Öğrendiklerim</span>
+      </button>
+    </section>
+
+    <!-- Mode 1: Flashcards -->
+    <section id="viewFlashcards" class="view-section active" role="tabpanel" aria-labelledby="tabFlashcards">
+      <div id="flashcardContainer" class="flashcard-layout">
+        <div class="progress-bar-wrap">
+          <span id="cardCounterText">Kart 1 / 1</span>
+          <div class="progress-track" aria-hidden="true">
+            <div id="progressFill" class="progress-fill"></div>
+          </div>
+          <span id="cardCategoryIndicator">Genel</span>
+        </div>
+
+        <div class="card-scene">
+          <div id="flashcardEl" class="flashcard" tabindex="0" role="button" aria-label="Ezber kartı. Çevirmek için tıklayın veya Boşluk tuşuna basın.">
+            <div class="card-face card-face-front">
+              <div class="card-top-bar">
+                <span id="frontCategoryBadge" class="category-badge">Kategori</span>
+                <div class="card-actions">
+                  <button type="button" id="frontSpeakBtn" class="icon-btn" title="Sesli Telaffuz (S)" aria-label="Terimi sesli oku">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                    </svg>
+                  </button>
+                  <button type="button" id="frontFavBtn" class="icon-btn" title="Öğrendiklerime / Favorilere Ekle (F)" aria-label="Öğrendiklerime ekle">
+                    <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="card-center">
+                <div class="face-label">Tıbbi Terim &amp; Okunuşu</div>
+                <h2 id="frontTermText" class="card-term">Terim</h2>
+                <div id="frontReadingText" class="card-reading">O-ku-nu-şu</div>
+              </div>
+
+              <div class="card-footer-hint">
+                <span>🔄 Anlam ve kök analizini görmek için karta dokunun</span>
+                <span>Ön Yüz</span>
+              </div>
+            </div>
+
+            <div class="card-face card-face-back">
+              <div class="card-top-bar">
+                <span id="backCategoryBadge" class="category-badge">Kategori</span>
+                <div class="card-actions">
+                  <button type="button" id="backSpeakBtn" class="icon-btn" title="Sesli Telaffuz (S)" aria-label="Terimi sesli oku">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                    </svg>
+                  </button>
+                  <button type="button" id="backFavBtn" class="icon-btn" title="Öğrendiklerime / Favorilere Ekle (F)" aria-label="Öğrendiklerime ekle">
+                    <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="card-center">
+                <div class="face-label">Klinik Türkçe Karşılığı</div>
+                <p id="backMeaningText" class="card-meaning">Anlamı</p>
+                <div class="card-breakdown-box">
+                  <div class="card-breakdown-title">Morfolojik Kök / Ek Analizi</div>
+                  <div id="backBreakdownText" class="card-breakdown-text">Kök + Ek</div>
+                </div>
+              </div>
+
+              <div class="card-footer-hint">
+                <span>🔄 Terime dönmek için tekrar dokunun</span>
+                <span>Arka Yüz</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="deck-controls">
+          <button type="button" id="prevCardBtn" class="ctrl-btn">← Önceki</button>
+          <button type="button" id="flipCardBtn" class="ctrl-btn primary">Kartı Çevir</button>
+          <button type="button" id="shuffleDeckBtn" class="ctrl-btn" title="Desteyi Karıştır">🔀 Karıştır</button>
+          <button type="button" id="nextCardBtn" class="ctrl-btn">Sonraki →</button>
+        </div>
+
+        <div class="kbd-shortcuts" aria-hidden="true">
+          <span><kbd>←</kbd> <kbd>→</kbd> Önceki / Sonraki</span>
+          <span><kbd>Boşluk</kbd> veya <kbd>Enter</kbd> Kartı Çevir</span>
+          <span><kbd>S</kbd> Sesli Telaffuz</span>
+          <span><kbd>F</kbd> Öğrendiklerime Ekle</span>
+        </div>
+      </div>
+
+      <div id="flashcardEmptyState" class="empty-state" style="display: none;">
+        <h3>Eşleşen Terim Bulunamadı</h3>
+        <p>Arama kriterlerinizi değiştirebilir veya filtreleri sıfırlayabilirsiniz.</p>
+      </div>
+    </section>
+
+    <!-- Mode 2: Dictionary / List View -->
+    <section id="viewDictionary" class="view-section" role="tabpanel" aria-labelledby="tabDictionary">
+      <div class="dictionary-meta">
+        <span id="dictCountLabel">Toplam 0 terim listeleniyor</span>
+      </div>
+      <div id="dictionaryGrid" class="dictionary-grid"></div>
+      <div id="dictEmptyState" class="empty-state" style="display: none;">
+        <h3>Sonuç Bulunamadı</h3>
+        <p>Aradığınız kritere uygun tıbbi terim bulunamadı.</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const MEDICAL_TERMS = [
+      // 1. Tıbbi Terminolojiye Giriş & Temel Kavramlar
+      { id: 1, term: "Terminologia", reading: "Ter-mi-no-lo-ji", meaning: "Bir bilim veya meslek dalındaki teknik terimlerin tümünü inceleyen bilim dalı.", breakdown: "Terminus (Terim, sınır) + -logia / Logos (Bilim)", category: "Genel Kökler ve Patoloji" },
+      { id: 2, term: "Primum non nocere", reading: "Pri-mum non no-se-re", meaning: "Önce zarar verme (Hipokrat'a dayanan temel hekimlik ilkesi).", breakdown: "Primum (Önce, ilk) + Non (Değil) + Nocere (Zarar vermek)", category: "Genel Kökler ve Patoloji" },
+      { id: 3, term: "Carcinoma", reading: "Kar-si-no-ma", meaning: "Epitel dokudan köken alan kötü huylu tümör, kanser.", breakdown: "Carcin/o (Yengeç, kanser) + -oma (Tümör, kitle)", category: "Genel Kökler ve Patoloji" },
+      { id: 4, term: "Biopsia", reading: "Bi-yop-si-ya", meaning: "Tanı amacıyla canlı dokudan parça alınıp incelenmesi (Çoğul: Biopsies).", breakdown: "Bi/o (Canlı, yaşam) + -opsia (Görme, inceleme)", category: "Genel Kökler ve Patoloji" },
+      { id: 5, term: "Diagnosis", reading: "Di-yag-no-zis", meaning: "Hastalığın tanısı, teşhis (Çoğul: Diagnoses).", breakdown: "Dia- (Tam, boyunca) + Gnos/o (Bilgi) + -is (Durum)", category: "Genel Kökler ve Patoloji" },
+      { id: 6, term: "Metastasis", reading: "Me-tas-ta-zis", meaning: "Kanser hücrelerinin bulundukları organdan başka dokulara sıçraması (Çoğul: Metastases).", breakdown: "Meta- (Öteye, değişim) + -stasis (Yerleşme, durma)", category: "Genel Kökler ve Patoloji" },
+      { id: 7, term: "Autopsia", reading: "O-top-si", meaning: "Ölüm nedenini belirlemek amacıyla cesedin iç organlarının incelenmesi, otopsi.", breakdown: "Auto- (Kendi) + -opsia (Görme, muayene)", category: "Genel Kökler ve Patoloji" },
+      { id: 8, term: "Autolysis", reading: "O-to-liz", meaning: "Hücre veya dokunun kendi enzimleri aracılığıyla kendi kendini eritmesi.", breakdown: "Auto- (Kendi) + -lysis (Erime, yıkım)", category: "Genel Kökler ve Patoloji" },
+      { id: 9, term: "Trauma", reading: "Trav-ma", meaning: "Dış etkenlerle oluşan doku yaralanması veya zedelenmesi.", breakdown: "Traumat/o (Yara, darbe, zedelenme)", category: "Genel Kökler ve Patoloji" },
+      { id: 10, term: "Parenchyma", reading: "Pa-ren-ki-ma", meaning: "Bir organın özgül işlevini yerine getiren temel fonksiyonel dokusu.", breakdown: "Para- (Yanında) + En- (İç) + Chym/o (Özsu, doku)", category: "Genel Kökler ve Patoloji" },
+      { id: 11, term: "Stenosis", reading: "Ste-no-zis", meaning: "Damar, kanal veya kapakçık gibi geçitlerin patolojik daralması, darlık.", breakdown: "Sten/o (Dar) + -osis (Patolojik durum)", category: "Genel Kökler ve Patoloji" },
+      { id: 12, term: "Stasis", reading: "Sta-zis", meaning: "Kan veya vücut sıvılarının akışının yavaşlaması ya da durması, göllenme.", breakdown: "Stas/i (Durma, sabitlenme)", category: "Genel Kökler ve Patoloji" },
+      { id: 13, term: "Oedema", reading: "Ö-dem", meaning: "Hücreler arası dokularda aşırı sıvı birikmesi sonucu oluşan şişlik.", breakdown: "Oedem/o (Şişlik, sıvı birikimi)", category: "Genel Kökler ve Patoloji" },
+      { id: 14, term: "Obesitas", reading: "O-be-zi-tas", meaning: "Vücutta sağlığı bozacak ölçüde aşırı yağ birikmesi, şişmanlık.", breakdown: "Obes/o (Şişman) + -itas (Durum)", category: "Genel Kökler ve Patoloji" },
+      { id: 15, term: "Congenital", reading: "Kon-je-ni-tal", meaning: "Doğuştan olan, doğumla birlikte var olan durum.", breakdown: "Con- (Birlikte) + Genit/o (Doğum) + -al (İle ilgili)", category: "Genel Kökler ve Patoloji" },
+      { id: 16, term: "Chronic", reading: "Kro-nik", meaning: "Uzun süreli, yavaş seyirli, müzmin hastalık durumu.", breakdown: "Chron/o (Zaman) + -ic (İle ilgili)", category: "Genel Kökler ve Patoloji" },
+      { id: 17, term: "Eutopic", reading: "Ö-to-pik", meaning: "Normal anatomik yerinde bulunan doku veya organ.", breakdown: "Eu- (İyi, normal) + Top/o (Yer, bölge) + -ic", category: "Genel Kökler ve Patoloji" },
+      { id: 18, term: "Euthanasia", reading: "Ö-ta-na-zi", meaning: "Kolay, acısız ve ağrısız ölüm.", breakdown: "Eu- (İyi, kolay) + Thanat/o (Ölüm) + -ia", category: "Genel Kökler ve Patoloji" },
+      { id: 19, term: "Autoallergy", reading: "O-to-a-ler-ji", meaning: "Vücudun kendi normal dokularına karşı bağışıklık tepkisi/alerji geliştirmesi.", breakdown: "Auto- (Kendi) + Allerg/o (Alerji)", category: "Genel Kökler ve Patoloji" },
+      { id: 20, term: "Epidemiology", reading: "E-pi-de-mi-yo-lo-ji", meaning: "Toplumdaki hastalıkların dağılımını ve sağlık olaylarını inceleyen bilim dalı.", breakdown: "Epi- (Üzerinde) + Dem/o (Halk, toplum) + -logy (Bilim)", category: "Genel Kökler ve Patoloji" },
+      { id: 21, term: "Gerontology", reading: "Je-ron-to-lo-ji", meaning: "Yaşlanma sürecini ve yaşlılık dönemini inceleyen bilim dalı.", breakdown: "Geront/o (Yaşlı) + -logy (Bilim)", category: "Genel Kökler ve Patoloji" },
+      { id: 22, term: "Pharmacology", reading: "Far-ma-ko-lo-ji", meaning: "İlaçların etkilerini ve canlı organizmayla etkileşimini inceleyen bilim dalı.", breakdown: "Pharmac/o (İlaç) + -logy (Bilim)", category: "Genel Kökler ve Patoloji" },
+      { id: 23, term: "Immunization", reading: "İm-mü-ni-zas-yon", meaning: "Hastalıklara karşı bağışıklık kazandırma işlemi, aşılama.", breakdown: "Immun/o (Bağışıklık) + -ization (İşlem)", category: "Genel Kökler ve Patoloji" },
+      { id: 24, term: "Adenoma", reading: "A-de-no-ma", meaning: "Salgı bezi epitelinden köken alan iyi huylu tümör (Çoğul: Adenomata).", breakdown: "Aden/o (Salgı bezi) + -oma (Tümör)", category: "Genel Kökler ve Patoloji" },
+      { id: 25, term: "Fibroma", reading: "Fib-ro-ma", meaning: "Lifli bağ dokusundan gelişen iyi huylu tümör (Çoğul: Fibromata).", breakdown: "Fibr/o (Lif) + -oma (Tümör)", category: "Genel Kökler ve Patoloji" },
+      { id: 26, term: "Onc/o", reading: "On-ko", meaning: "Tümör, kitle, şişlik (Örn: Onkoloji - tümör bilimi).", breakdown: "Onc/o (Kitle, tümör)", category: "Genel Kökler ve Patoloji" },
+      { id: 27, term: "Path/o (Pat/o-)", reading: "Pa-to", meaning: "Hastalık, patolojik durum (Örn: Patoloji - hastalık bilimi).", breakdown: "Path/o (Hastalık, ıstırap)", category: "Genel Kökler ve Patoloji" },
+      { id: 28, term: "Cyt/o (Sellül/o-, Sit/o-)", reading: "Si-to / Sel-lü-lo", meaning: "Hücre (Örn: Sitoloji - hücre bilimi).", breakdown: "Cyt/o, Cellul/o (Hücre, küçük odacık)", category: "Genel Kökler ve Patoloji" },
+      { id: 29, term: "Hist/o (Histi/o-)", reading: "His-to / His-ti-yo", meaning: "Doku (Örn: Histoloji - doku bilimi).", breakdown: "Hist/o, Histi/o (Doku, dokuma)", category: "Genel Kökler ve Patoloji" },
+      { id: 30, term: "Necr/o (Nekr/o-)", reading: "Nek-ro", meaning: "Ölüm, ölü doku veya hücre (Örn: Nekroz).", breakdown: "Necr/o (Ölüm)", category: "Genel Kökler ve Patoloji" },
+      { id: 31, term: "Py/o (Püy/o-)", reading: "Pü-yo", meaning: "İrin, iltihap sıvısı (Örn: Piyojenik - irin oluşturan).", breakdown: "Py/o (İrin, cerahat)", category: "Genel Kökler ve Patoloji" },
+      { id: 32, term: "Cry/o (Kriy/o-)", reading: "Kri-yo", meaning: "Soğuk, donmuş (Örn: Kriyoterapi - soğuk uygulaması ile tedavi).", breakdown: "Cry/o (Soğuk, buz)", category: "Genel Kökler ve Patoloji" },
+      { id: 33, term: "Therm/o (Term/o-)", reading: "Ter-mo", meaning: "Isı, sıcaklık (Örn: Hipotermi, Hipertermi).", breakdown: "Therm/o (Isı, sıcaklık)", category: "Genel Kökler ve Patoloji" },
+      { id: 34, term: "Crypt/o (Kript/o-)", reading: "Krip-to", meaning: "Gizli, saklı (Örn: Kriptorşidizm - inmemiş gizli testis).", breakdown: "Crypt/o (Gizli, örtülü)", category: "Genel Kökler ve Patoloji" },
+      { id: 35, term: "Iatr/o (İatr/o-)", reading: "İ-yat-ro", meaning: "Hekim, tıbbi tedavi (Örn: İyatrojenik, Pediatri).", breakdown: "Iatr/o (Hekim, tedavi)", category: "Genel Kökler ve Patoloji" },
+      { id: 36, term: "Somat/o", reading: "So-ma-to", meaning: "Vücut, beden, gövde (Örn: Psikosomatik).", breakdown: "Somat/o (Vücut, beden)", category: "Genel Kökler ve Patoloji" },
+      { id: 37, term: "Viscer/o (Viser/o-)", reading: "Vi-se-ro", meaning: "İç organlar, karın ve göğüs boşluğundaki organlar.", breakdown: "Viscer/o, Splanchn/o (İç organ)", category: "Genel Kökler ve Patoloji" },
+      { id: 38, term: "Chrom/o (Krom/o-)", reading: "Kro-mo", meaning: "Renk, pigment.", breakdown: "Chrom/o (Renk)", category: "Genel Kökler ve Patoloji" },
+      { id: 39, term: "Lip/o (Lipid/o-)", reading: "Li-po / Li-pi-do", meaning: "Yağ, yağ dokusu (Örn: Lipom - yağ dokusu tümörü).", breakdown: "Lip/o, Lipid/o (Yağ)", category: "Genel Kökler ve Patoloji" },
+      { id: 40, term: "Lith/o (Lit/o-)", reading: "Li-to", meaning: "Taş, kanal veya kese içinde oluşan kalsifiye kitle (Calculus).", breakdown: "Lith/o (Taş)", category: "Genel Kökler ve Patoloji" },
+      { id: 41, term: "Sarc/o (Sark/o-)", reading: "Sar-ko", meaning: "Et, yumuşak doku, bağ ve kas dokusu (Örn: Sarkom).", breakdown: "Sarc/o (Et, yumuşak doku)", category: "Genel Kökler ve Patoloji" },
+
+      // 2. Anatomik Yönler, Sıfatlar, Tekil-Çoğul ve Küçültme Yapıları
+      { id: 42, term: "Anterior (Anter/o-)", reading: "An-te-ri-yor", meaning: "Ön, vücudun ön tarafına daha yakın olan (Üstünlük: Anticus - en ön).", breakdown: "Anter/o (Ön) + -ior (Daha)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 43, term: "Posterior", reading: "Pos-te-ri-yor", meaning: "Arka, vücudun sırt/arka tarafına daha yakın olan (Üstünlük: Posticus - en arka).", breakdown: "Poster/o (Arka) + -ior (Daha)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 44, term: "Superior", reading: "Su-pe-ri-yor", meaning: "Üst, baş tarafına daha yakın olan (Üstünlük: Supremus - en üst).", breakdown: "Super/o (Üst) + -ior (Daha)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 45, term: "Inferior", reading: "İn-fe-ri-yor", meaning: "Alt, ayak tarafına daha yakın olan (Üstünlük: Infimus - en alt).", breakdown: "Infer/o (Alt) + -ior (Daha)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 46, term: "Medialis", reading: "Me-di-ya-lis", meaning: "İç yan, vücudun orta hattına (median düzleme) yakın olan.", breakdown: "Medi/o (Orta, iç) + -alis (İle ilgili)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 47, term: "Lateralis (Later/o-)", reading: "La-te-ra-lis", meaning: "Dış yan, vücudun orta hattından uzak olan (Çoğul: Laterales).", breakdown: "Later/o (Yan, dış taraf) + -alis (İle ilgili)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 48, term: "Ventralis (Ventr/o-)", reading: "Ven-tra-lis", meaning: "Karın tarafına ait, vücudun ön yüzüyle ilgili.", breakdown: "Ventr/o (Karın, ön) + -alis (İle ilgili)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 49, term: "Dorsalis (Dors/o-)", reading: "Dor-sa-lis", meaning: "Sırt tarafına ait, vücudun arka yüzüyle ilgili.", breakdown: "Dors/o (Sırt, arka) + -alis (İle ilgili)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 50, term: "Caud/o (Kaud/o-)", reading: "Ka-u-do", meaning: "Kuyruk tarafı, vücudun alt/aşağı kısmı.", breakdown: "Caud/o (Kuyruk, aşağı)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 51, term: "Acr/o (Akr/o-)", reading: "Ak-ro", meaning: "Uç kısımlar, ekstremiteler (el, ayak, kol ve bacak uçları).", breakdown: "Acr/o (Uç, zirve, ekstremite)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 52, term: "Dexter / Sinister", reading: "Deks-ter / Si-nis-ter", meaning: "Sağ (Dexter) ve Sol (Sinister) tarafı belirten yön sıfatları.", breakdown: "Dextr/o (Sağ) / Sinistr/o (Sol)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 53, term: "Superficialis / Profundus", reading: "Su-per-fi-si-ya-lis / Pro-fun-dus", meaning: "Yüzeyel, deri yüzeyine yakın (Superficialis) ve Derin (Profundus).", breakdown: "Superfici/o (Yüzey) + -alis / Profund/o (Derin)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 54, term: "Longus / Brevis", reading: "Lon-gus / Bre-vis", meaning: "Uzun (Longus; en uzun: Longissimus) ve Kısa (Brevis).", breakdown: "Long/o (Uzun) / Brev/i (Kısa)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 55, term: "Magnus / Parvus", reading: "Mag-nus / Par-vus", meaning: "Büyük (Magnus -> Major -> Maximus) ve Küçük (Parvus -> Minor -> Minimus).", breakdown: "Magn/o (Büyük) / Parv/o (Küçük)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 56, term: "Latus / Latissimus", reading: "La-tus / La-tis-si-mus", meaning: "Geniş (Latus), Daha geniş (Latior), En geniş (Latissimus - Örn: M. latissimus dorsi).", breakdown: "Lat/o (Geniş) + -issimus (En üstünlük eki)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 57, term: "Ascendens / Descendens", reading: "A-sen-dens / De-sen-dens", meaning: "Yukarı doğru çıkan (Ascendens - Örn: Aorta ascendens) ve Aşağı inen (Descendens).", breakdown: "Ascend/o (Yükselmek) / Descend/o (İnmek)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 58, term: "Apex / Basis", reading: "A-peks / Ba-zis", meaning: "Bir organın tepe/uç kısmı (Apex, çoğul: Apices) ve taban/kaide kısmı (Basis).", breakdown: "Apic/o (Tepe, uç) / Bas/i (Taban)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 59, term: "Corpus / Corpora", reading: "Kor-pus / Kor-po-ra", meaning: "Beden, gövde, cisim (İyelik: Corporis, Küçültme: Corpusculum - cisimcik).", breakdown: "Corpor/o (Gövde, cisim)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 60, term: "Spatium", reading: "Spas-yum", meaning: "İki anatomik yapı arasındaki aralık, açıklık veya boşluk.", breakdown: "Spati/o (Boşluk, aralık)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 61, term: "Regio / Regiones", reading: "Re-ji-yo / Re-ji-yo-nes", meaning: "Vücut bölgesi / Bölgeler (İyelik: Regionis).", breakdown: "Regi/o (Bölge) + -o / -ones", category: "Anatomik Yönler ve Yapılar" },
+      { id: 62, term: "Septum / Septa", reading: "Sep-tum / Sep-ta", meaning: "İki boşluğu veya organ bölümünü birbirinden ayıran bölme duvarı.", breakdown: "Sept/o (Bölme, duvar) + -um / -a", category: "Anatomik Yönler ve Yapılar" },
+      { id: 63, term: "Ductus / Ductulus", reading: "Duk-tus / Duk-tu-lus", meaning: "Kanal, boru (Ductus) ve küçük ince kanalcık (Ductulus).", breakdown: "Duct/o (Kanal) + -ulus (Küçültme eki)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 64, term: "Tubus / Tubulus", reading: "Tu-bus / Tu-bu-lus", meaning: "Boru, tüp (Tubus) ve mikroskobik ince borucuk/kanalcık (Tubulus).", breakdown: "Tub/o (Boru) + -ulus (Küçültme eki)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 65, term: "Capsa / Capsula", reading: "Kap-sa / Kap-sü-la", meaning: "Kutu, muhafaza (Capsa) ve bir organı ya da eklemi dıştan saran koruyucu zar (Capsula).", breakdown: "Caps/o (Kutu) + -ula (Küçültme eki)", category: "Anatomik Yönler ve Yapılar" },
+      { id: 66, term: "Nucleus / Nucleolus", reading: "Nuk-le-us / Nuk-le-o-lus", meaning: "Hücre çekirdeği veya sinir merkezi (Nucleus) ve çekirdekçik (Nucleolus).", breakdown: "Nucle/o (Çekirdek) + -olus (Küçültme eki)", category: "Anatomik Yönler ve Yapılar" },
+
+      // 3. Kas ve İskelet Sistemi
+      { id: 67, term: "Oste/o (Osse/o-, Oss/i-)", reading: "Os-te-o", meaning: "Kemik (Örn: Osteoporoz, Osteomiyelit).", breakdown: "Oste/o, Os (Kemik)", category: "Kas ve İskelet Sistemi" },
+      { id: 68, term: "Chondr/o (Kondr/o-)", reading: "Kon-dro", meaning: "Kıkırdak, kartilago (Örn: Kondrosit - kıkırdak hücresi).", breakdown: "Chondr/o (Kıkırdak)", category: "Kas ve İskelet Sistemi" },
+      { id: 69, term: "Arthr/o (Articulatio / Junctura)", reading: "Art-ro / Ar-ti-ku-las-yo", meaning: "Eklem, mafsal (Örn: Artrit / Arthritis - eklem iltihabı, çoğul: Arthritides).", breakdown: "Arthr/o, Articul/o (Eklem)", category: "Kas ve İskelet Sistemi" },
+      { id: 70, term: "My/o (Musculus / Miy/o-)", reading: "Mi-yo / Mus-ku-lus", meaning: "Kas (Latince 'küçük fare' anlamına gelen musculus'tan; çoğul: Musculi).", breakdown: "My/o, Myos/o, Muscul/o (Kas)", category: "Kas ve İskelet Sistemi" },
+      { id: 71, term: "Myalgia", reading: "Mi-yal-ji", meaning: "Kas ağrısı.", breakdown: "My/o (Kas) + -algia (Ağrı)", category: "Kas ve İskelet Sistemi" },
+      { id: 72, term: "Dyskinesia", reading: "Dis-ki-ne-zi", meaning: "İstemli kas hareketlerinin bozulması veya güçleşmesi.", breakdown: "Dys- (Bozuk, güç) + Kinesi/o (Hareket) + -ia", category: "Kas ve İskelet Sistemi" },
+      { id: 73, term: "Ligamentum / Ligamenta", reading: "Li-ga-men-tum / Li-ga-men-ta", meaning: "Kemikleri birbirine bağlayan sağlam lifli eklem bağı.", breakdown: "Ligament/o (Bağ) + -um / -a", category: "Kas ve İskelet Sistemi" },
+      { id: 74, term: "Tend/o (Ten/o-)", reading: "Ten-do / Te-no", meaning: "Tendon, kası kemiğe bağlayan sert lifli kiriş.", breakdown: "Tend/o, Ten/o (Kiriş, tendon)", category: "Kas ve İskelet Sistemi" },
+      { id: 75, term: "Bursa / Bursae", reading: "Bur-sa / Bur-se", meaning: "Eklem ve tendon çevresinde sürtünmeyi azaltan sıvı dolu kesecik, minder.", breakdown: "Burs/o (Kese, minder) + -a / -ae", category: "Kas ve İskelet Sistemi" },
+      { id: 76, term: "Synovi/o", reading: "Si-no-vi-yo", meaning: "Oynar eklem boşluğunu döşeyen sinoviyal zar ve kayganlaştırıcı eklem sıvısı.", breakdown: "Synovi/o (Sinoviyal sıvı/zar)", category: "Kas ve İskelet Sistemi" },
+      { id: 77, term: "Menisc/o", reading: "Me-nis-ko", meaning: "Diz ekleminde eklem yüzlerinin uyumunu sağlayan yarımay şeklindeki fibrokartilaj yapı (menisküs).", breakdown: "Menisc/o (Hilal, yarımay)", category: "Kas ve İskelet Sistemi" },
+      { id: 78, term: "Crani/o (Cephal/o / Kapit/o-)", reading: "Kra-ni-yo / Se-fa-lo", meaning: "Kafatası (Cranium) ve Baş/Kafa (Cephal/o, Caput).", breakdown: "Crani/o (Kafatası), Cephal/o (Baş)", category: "Kas ve İskelet Sistemi" },
+      { id: 79, term: "Occipit/o (Oksipit/o-)", reading: "Ok-si-pi-to", meaning: "Başın ve kafatasının arka kısmı, artkafa.", breakdown: "Occipit/o (Başın arkası)", category: "Kas ve İskelet Sistemi" },
+      { id: 80, term: "Maxill/o & Mandibul/o", reading: "Mak-sil-lo / Man-di-bu-lo", meaning: "Üst çene kemiği (Maxilla) ve Alt çene kemiği (Mandibula; Gnath/o: Çene).", breakdown: "Maxill/o (Üst çene), Mandibul/o (Alt çene)", category: "Kas ve İskelet Sistemi" },
+      { id: 81, term: "Vertebra / Spondyl/o / Rachi/o", reading: "Ver-teb-ra / Spon-di-lo", meaning: "Omur, omurga kemiği (Çoğul: Vertebrae; Disc/o: Omurlar arası disk).", breakdown: "Vertebr/o, Spondyl/o, Rachi/o (Omur, omurga)", category: "Kas ve İskelet Sistemi" },
+      { id: 82, term: "Atlas & Axis", reading: "At-las / Ak-sis", meaning: "Kafatasını taşıyan 1. boyun omuru (Atlas, iyelik: Atlantis) ve 2. boyun omuru (Axis).", breakdown: "Atlas (C1 omuru) / Axis (Eksen, C2 omuru)", category: "Kas ve İskelet Sistemi" },
+      { id: 83, term: "Cervic/o (Trakel/o-)", reading: "Ser-vi-ko / Tra-ke-lo", meaning: "Boyun bölgesi (Collum) veya rahim boynu (Cervix, çoğul: Cervices).", breakdown: "Cervic/o, Trachel/o, Coll/o (Boyun)", category: "Kas ve İskelet Sistemi" },
+      { id: 84, term: "Lumb/o", reading: "Lum-bo", meaning: "Bel, bel bölgesi (lumbal omurlar bölgesi).", breakdown: "Lumb/o (Bel)", category: "Kas ve İskelet Sistemi" },
+      { id: 85, term: "Sacr/o (Os sacrum)", reading: "Sak-ro", meaning: "Omurganın alt kısmında leğen kemikleri arasındaki üçgen 'kutsal kemik', sakrum.", breakdown: "Sacr/o, Hieron (Sakrum, kutsal kemik)", category: "Kas ve İskelet Sistemi" },
+      { id: 86, term: "Coccyx (Koksiks)", reading: "Kok-siks", meaning: "Guguk kuşu gagasına benzetilen kuyruk sokumu kemiği.", breakdown: "Coccyg/o (Kuyruk sokumu kemiği)", category: "Kas ve İskelet Sistemi" },
+      { id: 87, term: "Scoli/o (Scoliosis)", reading: "Skol-yo-zis", meaning: "Omurganın sağa veya sola doğru patolojik yana eğriliği.", breakdown: "Scoli/o (Eğri, yana bükülme) + -osis", category: "Kas ve İskelet Sistemi" },
+      { id: 88, term: "Thorax (Torak/o- / Stet/o-)", reading: "To-raks / To-ra-ko", meaning: "Göğüs, göğüs kafesi (Çoğul: Thoraces).", breakdown: "Thorac/o, Steth/o (Göğüs kafesi)", category: "Kas ve İskelet Sistemi" },
+      { id: 89, term: "Stern/o (Sternum)", reading: "Ster-no", meaning: "Göğüs kafesinin ön ortasında yer alan göğüs kemiği (iman tahtası).", breakdown: "Stern/o (Göğüs kemiği)", category: "Kas ve İskelet Sistemi" },
+      { id: 90, term: "Costa / Costae (Kost/o-)", reading: "Kos-ta / Kos-te", meaning: "Kaburga / Kaburgalar (Örn: Intercostalis - kaburgalar arası).", breakdown: "Cost/o (Kaburga)", category: "Kas ve İskelet Sistemi" },
+      { id: 91, term: "Clavicula (Clavicul/o)", reading: "Kla-vi-ku-la", meaning: "Küçük anahtar anlamına gelen köprücük kemiği.", breakdown: "Clavis (Anahtar) + -cula (Küçültme eki)", category: "Kas ve İskelet Sistemi" },
+      { id: 92, term: "Scapul/o (Skapul/o-)", reading: "Ska-pu-lo", meaning: "Sırtın üst yan kısmında yer alan kürek kemiği (Scapula).", breakdown: "Scapul/o (Kürek kemiği)", category: "Kas ve İskelet Sistemi" },
+      { id: 93, term: "Brachi/o & Humer/o", reading: "Bra-ki-yo / Hu-me-ro", meaning: "Kol (Brachium) ve üst kol kemiği (Humerus; Axill/o: Koltukaltı).", breakdown: "Brachi/o (Kol), Humer/o (Üst kol kemiği)", category: "Kas ve İskelet Sistemi" },
+      { id: 94, term: "Cubit/o, Radi/o & Uln/o", reading: "Ku-bi-to / Rad-yo / Ul-no", meaning: "Dirsek (Cubitus), ön kolun dış yan döner kemiği (Radius) ve iç yan dirsek kemiği (Ulna).", breakdown: "Cubit/o (Dirsek), Radi/o (Radius), Uln/o (Ulna)", category: "Kas ve İskelet Sistemi" },
+      { id: 95, term: "Carp/o, Manus & Cheir/o", reading: "Kar-po / Ma-nus / Ki-ro", meaning: "El bileği kemikleri (Carp/o) ve El (Latince: Manus, Grekçe: Cheir/o, Kir/o).", breakdown: "Carp/o (El bileği), Man/u, Cheir/o (El)", category: "Kas ve İskelet Sistemi" },
+      { id: 96, term: "Phalanx / Phalanges", reading: "Fa-lanks / Fa-lan-jes", meaning: "El ve ayak parmak kemiği / Parmak kemikleri.", breakdown: "Phalang/o (Parmak kemiği) + -nx / -nges", category: "Kas ve İskelet Sistemi" },
+      { id: 97, term: "Pelvis (Ilium, Ischium, Pubis)", reading: "Pel-vis", meaning: "Leğen kemeri (Üst kanat: Ilium/İli/o, Alt oturga: Ischium/İschi/o, Ön çatı: Pubis/Pub/o).", breakdown: "Pelv/i (Leğen), Ili/o, Ischi/o, Pub/o", category: "Kas ve İskelet Sistemi" },
+      { id: 98, term: "Acetabulum", reading: "A-se-ta-bu-lum", meaning: "Uyluk kemiği başının kalça kemiğiyle eklem yaptığı derin çukur, hokka çukuru.", breakdown: "Acetabul/o (Sirke kabı, hokka çukuru)", category: "Kas ve İskelet Sistemi" },
+      { id: 99, term: "Femur / Femoris (Femor/o)", reading: "Fe-mur / Fe-mo-ris", meaning: "Uyluk kemiği, vücudun en uzun ve sağlam kemiği.", breakdown: "Femor/o (Uyluk)", category: "Kas ve İskelet Sistemi" },
+      { id: 100, term: "Genu & Patell/o", reading: "Ge-nu / Pa-tel-lo", meaning: "Diz eklemi (Genu, çoğul: Genua) ve diz kapağı kemiği (Patella).", breakdown: "Genu (Diz), Patell/o (Diz kapağı)", category: "Kas ve İskelet Sistemi" },
+      { id: 101, term: "Fibul/o", reading: "Fi-bu-lo", meaning: "Bacağın dış yanında yer alan ince kamış kemiği (Fibula).", breakdown: "Fibul/o (Toka, çengel, kamış kemiği)", category: "Kas ve İskelet Sistemi" },
+      { id: 102, term: "Tal/o, Tars/o & Malleolus", reading: "Ta-lo / Tar-so / Mal-le-o-lus", meaning: "Aşık kemiği (Talus), ayak bileği kemikleri (Tars/o) ve ayak bileği çıkıntısı (Malleolus).", breakdown: "Tal/o, Tars/o (Ayak bileği), Malleol/o (Küçük çekiç)", category: "Kas ve İskelet Sistemi" },
+      { id: 103, term: "Pes / Pedis (Pod/o-)", reading: "Pes / Pe-dis / Po-do", meaning: "Ayak (Latince: Pes/Pedis, Grekçe: Pod/o; Pediculus: Ayakçık).", breakdown: "Ped/o, Pod/o (Ayak)", category: "Kas ve İskelet Sistemi" },
+      { id: 104, term: "Caput, Capitulum & Collum", reading: "Ka-put / Ka-pi-tu-lum / Kol-lum", meaning: "Kemik başı (Caput), küçük baş/başçık (Capitulum) ve kemik boynu (Collum).", breakdown: "Caput (Baş), Capitulum (Başçık), Collum (Boyun)", category: "Kas ve İskelet Sistemi" },
+      { id: 105, term: "Condylus & Epicondylus", reading: "Kon-di-lus / E-pi-kon-di-lus", meaning: "Eklem yüzü taşıyan yuvarlak kemik yumrusu/lokma (Condylus) ve lokma üstü çıkıntı (Epicondylus).", breakdown: "Condyl/o (Yumru) / Epi- (Üst) + Condyl/o", category: "Kas ve İskelet Sistemi" },
+      { id: 106, term: "Crista, Spina & Processus", reading: "Kris-ta / Spi-na / Pro-ses-sus", meaning: "İbik şeklinde keskin kemik kenarı (Crista), dikenimsi çıkıntı (Spina) ve genel kemik çıkıntısı (Processus).", breakdown: "Crista (İbik), Spina (Diken), Processus (Çıkıntı)", category: "Kas ve İskelet Sistemi" },
+      { id: 107, term: "Tuber, Tuberculum & Tuberositas", reading: "Tu-ber / Tu-ber-ku-lum / Tu-be-ro-zi-tas", meaning: "Yuvarlak kemik tümseği (Tuber), küçük kabartı (Tuberculum) ve pürüzlü kemik kabartısı (Tuberositas).", breakdown: "Tuber/o (Tümsek, yumru) + -culum / -ositas", category: "Kas ve İskelet Sistemi" },
+      { id: 108, term: "Trochanter", reading: "Tro-kan-ter", meaning: "Uyluk kemiğinin (femur) üst ucunda kasların tutunduğu büyük döner çıkıntı.", breakdown: "Trochanter/o (Yuvarlak döner çıkıntı)", category: "Kas ve İskelet Sistemi" },
+      { id: 109, term: "Fossa, Fossula, Fovea & Sulcus", reading: "Fos-sa / Fo-ve-a / Sul-kus", meaning: "Kemik çukuru (Fossa), küçük çukur (Fossula), sığ çukur (Fovea) ve kemik oluğu (Sulcus).", breakdown: "Foss/o (Çukur), Fove/o (Sığ çukur), Sulc/o (Oluk)", category: "Kas ve İskelet Sistemi" },
+      { id: 110, term: "Foramen, Fissura, Hiatus & Incisura", reading: "Fo-ra-men / Fis-su-ra / İn-si-zu-ra", meaning: "Kemik deliği (Foramen), yarık/çatlak (Fissura), açıklık/geçit (Hiatus) ve kenar çentiği (Incisura).", breakdown: "Foramin/o (Delik), Fissur/o (Yarık), Incisur/o (Çentik)", category: "Kas ve İskelet Sistemi" },
+      { id: 111, term: "Sutura & Lamina", reading: "Su-tu-ra / La-mi-na", meaning: "Kafatası kemikleri arasındaki dikiş tarzı eklem (Sutura) ve ince kemik/doku levhası (Lamina).", breakdown: "Sutura (Dikiş), Lamin/o (Yaprak, tabaka)", category: "Kas ve İskelet Sistemi" },
+
+      // 4. Dolaşım, Kan ve Lenf Sistemi
+      { id: 112, term: "Cardi/o (Kardiy/o- / Cordi)", reading: "Kar-di-yo", meaning: "Kalp, yürek (Grekçe: Kardia, Latince: Cor / Cordis).", breakdown: "Cardi/o, Cord/i (Kalp)", category: "Dolaşım ve Kan Sistemi" },
+      { id: 113, term: "Atri/o (Atriy/o-) & Auricula", reading: "At-ri-yo / Au-ri-ku-la", meaning: "Kalp kulakçığı, üst odacık (Atrium) ve kulakçık uzantısı (Auricula).", breakdown: "Atri/o (Giriş odası, kulakçık), Auricul/o (Kulakçık)", category: "Dolaşım ve Kan Sistemi" },
+      { id: 114, term: "Valva / Valvula", reading: "Val-va / Val-vu-la", meaning: "Kalp veya damar kapağı (Valva) ve küçük kapakçık (Valvula).", breakdown: "Valv/o (Kapak) + -ula (Küçültme eki)", category: "Dolaşım ve Kan Sistemi" },
+      { id: 115, term: "Angi/o (Anjiy/o-) & Vas/o", reading: "An-ji-yo / Va-zo", meaning: "Damar, kan veya lenf damarı (Örn: Anjiyografi, Vazodilatasyon).", breakdown: "Angi/o, Vas/o (Damar, kanal)", category: "Dolaşım ve Kan Sistemi" },
+      { id: 116, term: "Arteria / Arteriola", reading: "Ar-te-ri-ya / Ar-te-ri-yo-la", meaning: "Atardamar (Arteria, çoğul: Arteriae) ve küçük çaplı ince atardamar (Arteriola).", breakdown: "Arteri/o (Atardamar) + -ola (Küçültme eki)", category: "Dolaşım ve Kan Sistemi" },
+      { id: 117, term: "Vena / Phleb/o (Fleb/o-)", reading: "Ve-na / Fle-bo", meaning: "Toplardamar (Latince: Vena, çoğul: Venae; Grekçe: Phleb/o - Örn: Flebit).", breakdown: "Ven/o, Phleb/o (Toplardamar)", category: "Dolaşım ve Kan Sistemi" },
+      { id: 118, term: "Varix / Varices", reading: "Va-riks / Va-ri-ses", meaning: "Genişlemiş, uzamış ve kıvrımlaşmış yüzeyel toplardamar, varis.", breakdown: "Varic/o (Genişlemiş toplardamar) + -ix / -ices", category: "Dolaşım ve Kan Sistemi" },
+      { id: 119, term: "Adventitia", reading: "Ad-ven-tis-ya", meaning: "Atardamar ve toplardamarların (tunica externa) en dış bağ dokusu tabakası.", breakdown: "Adventiti/o (Dıştan saran tabaka)", category: "Dolaşım ve Kan Sistemi" },
+      { id: 120, term: "Haem/o (Hemat/o-)", reading: "He-mo / He-ma-to", meaning: "Kan (Örn: Hematoloji - kan bilimi, Hemoraji - kanama).", breakdown: "Haem/o, Hemat/o (Kan)", category: "Dolaşım ve Kan Sistemi" },
+      { id: 121, term: "Erythr/o & Leuc/o", reading: "E-rit-ro / Lö-ko", meaning: "Kırmızı / Alyuvar (Erythr/o - Eritrosit) ve Beyaz / Akyuvar (Leuc/o - Lökosit).", breakdown: "Erythr/o (Kırmızı), Leuc/o (Beyaz)", category: "Dolaşım ve Kan Sistemi" },
+      { id: 122, term: "Thrombus & Embolus", reading: "Trom-bus / Em-bo-lus", meaning: "Damar içinde oluşan kan pıhtısı (Thrombus) ve dolaşımla taşınıp damarı tıkayan pıhtı/kitle (Embolus, çoğul: Emboli).", breakdown: "Thromb/o (Pıhtı), Embol/o (Tıkaç, pıhtı)", category: "Dolaşım ve Kan Sistemi" },
+      { id: 123, term: "Cyanotic (Siyan/o-)", reading: "Si-ya-no-tik", meaning: "Kanda oksijen azlığına bağlı deri ve mukozaların morarması (siyanoz) ile ilgili.", breakdown: "Cyan/o (Koyu mavi, mor) + -tic", category: "Dolaşım ve Kan Sistemi" },
+      { id: 124, term: "Splen/o & Splenectomy", reading: "Sple-no / Sple-nek-to-mi", meaning: "Dalak (Splen/o) ve dalağın cerrahi olarak çıkarılması (Splenektomi).", breakdown: "Splen/o (Dalak) + -ectomy (Cerrahi çıkarma)", category: "Dolaşım ve Kan Sistemi" },
+      { id: 125, term: "Lymph/o (Lenf/o-) & Thym/o", reading: "Len-fo / Ti-mo", meaning: "Lenf sıvısı/damarı (Lymph/o) ve göğüs boşluğundaki lenfoid organ olan Timus bezi (Thym/o).", breakdown: "Lymph/o (Akkan, lenf), Thym/o (Timus bezi)", category: "Dolaşım ve Kan Sistemi" },
+
+      // 5. Solunum Sistemi
+      { id: 126, term: "Rhin/o (Rin/o-) & Nas/o (Naz/o-)", reading: "Ri-no / Na-zo", meaning: "Burun (Grekçe: Rhin/o - Örn: Rinit; Latince: Nas/o - Örn: Nazal).", breakdown: "Rhin/o, Nas/o (Burun)", category: "Solunum Sistemi" },
+      { id: 127, term: "Rhinorrhagia", reading: "Ri-no-ra-ji", meaning: "Şiddetli burun kanaması (Epistaksis).", breakdown: "Rhin/o (Burun) + -rrhagia (Aşırı kanama)", category: "Solunum Sistemi" },
+      { id: 128, term: "Sinus / Sinuses", reading: "Si-nus / Si-nu-zes", meaning: "Burun çevresindeki yüz kemikleri içinde yer alan hava dolu boşluklar (paranazal sinüsler).", breakdown: "Sinus/o (Boşluk, girinti)", category: "Solunum Sistemi" },
+      { id: 129, term: "Pharynx (Fareng/o-)", reading: "Fa-rinks / Fa-ren-go", meaning: "Yutak; hem solunum hem sindirim sisteminin ortak geçidi (Örn: Farenjit).", breakdown: "Pharyng/o (Yutak)", category: "Solunum Sistemi" },
+      { id: 130, term: "Tonsill/o (Tonsilla)", reading: "Ton-sil-lo", meaning: "Yutak girişinde yer alan lenfoid doku, bademcik (Örn: Tonsillit).", breakdown: "Tonsill/o (Bademcik)", category: "Solunum Sistemi" },
+      { id: 131, term: "Larynx / Larynges (Lareng/o-)", reading: "La-rinks / La-rin-jes", meaning: "Gırtlak; ses tellerini barındıran solunum organı.", breakdown: "Laryng/o (Gırtlak) + -nx / -nges", category: "Solunum Sistemi" },
+      { id: 132, term: "Trache/o (Trake/o-)", reading: "Tra-ke-o", meaning: "Soluk borusu, nefes borusu (Trachea).", breakdown: "Trache/o (Soluk borusu)", category: "Solunum Sistemi" },
+      { id: 133, term: "Bronchus / Bronchiolus", reading: "Bron-kus / Bron-ki-yo-lus", meaning: "Ana soluk borusu dalı (Bronchus, çoğul: Bronchi) ve ince uç hava yolu (Bronchiolus).", breakdown: "Bronch/o (Bronş) + -iolus (Küçültme eki)", category: "Solunum Sistemi" },
+      { id: 134, term: "Alveolus / Alveoli (Alveol/o-)", reading: "Al-ve-o-lus / Al-ve-o-li", meaning: "Akciğerlerde gaz alışverişinin gerçekleştiği küçük hava keseciği.", breakdown: "Alveus (Oyuk) + -olus (Küçültme eki)", category: "Solunum Sistemi" },
+      { id: 135, term: "Pulmon/o & Pneum/o (Pnöm/o-)", reading: "Pul-mo-no / Pnö-mo", meaning: "Akciğer (Latince: Pulmo/Pulmon/o; Grekçe: Pneum/o, Pneumat/o - akciğer veya hava).", breakdown: "Pulmon/o, Pneum/o (Akciğer, hava)", category: "Solunum Sistemi" },
+      { id: 136, term: "Pleura (Plör/o-)", reading: "Plev-ra / Plö-ra", meaning: "Akciğerleri saran ve göğüs boşluğu iç duvarını döşeyen çift katlı zar.", breakdown: "Pleur/o (Akciğer zarı, yan)", category: "Solunum Sistemi" },
+      { id: 137, term: "Phren/o (Fren/o-)", reading: "Fre-no", meaning: "Göğüs ve karın boşluğunu ayıran ana solunum kası olan diyafram (ayrıca: zihin/akıl).", breakdown: "Phren/o (Diyafram / Zihin)", category: "Solunum Sistemi" },
+      { id: 138, term: "Rhonchus", reading: "Ron-küs", meaning: "Bronşların daralması veya salgı birikmesi sonucu oskültasyonda duyulan kuru, hırıltılı akciğer sesi.", breakdown: "Rhonch/o (Hırıltı, horultu)", category: "Solunum Sistemi" },
+
+      // 6. Sindirim Sistemi
+      { id: 139, term: "Os / Oris (Or/o-) & Stomat/o", reading: "Os / O-ris / Sto-ma-to", meaning: "Ağız, ağız boşluğu (Latince: Os/Oris, Grekçe: Stomat/o - Örn: Stomatit).", breakdown: "Or/o, Stomat/o (Ağız)", category: "Sindirim Sistemi" },
+      { id: 140, term: "Labium / Labia & Cheil/o (Keil/o-)", reading: "La-bi-yum / Ke-i-lo", meaning: "Dudak / Dudaklar (Latince: Labi/o, Grekçe: Cheil/o, Kil/o).", breakdown: "Labi/o, Cheil/o (Dudak)", category: "Sindirim Sistemi" },
+      { id: 141, term: "Bucc/o (Bukk/o-)", reading: "Buk-ko", meaning: "Yanak, ağız boşluğunun yan duvarı.", breakdown: "Bucc/o (Yanak)", category: "Sindirim Sistemi" },
+      { id: 142, term: "Odont/o & Dent/i", reading: "O-don-to / Den-ti", meaning: "Diş, dişler (Grekçe: Odont/o, Latince: Dent/i).", breakdown: "Odont/o, Dent/i (Diş)", category: "Sindirim Sistemi" },
+      { id: 143, term: "Gingiv/o & Gingivitis", reading: "Jin-ji-vo / Jin-ji-vi-tis", meaning: "Diş eti (Gingiva) ve diş eti iltihabı (Gingivitis).", breakdown: "Gingiv/o (Diş eti) + -itis (İltihap)", category: "Sindirim Sistemi" },
+      { id: 144, term: "Lingua (Lingu/o-) & Gloss/o", reading: "Lin-gva / Glos-so", meaning: "Dil (Latince: Lingua, küçültme: Lingula - dilcik; Grekçe: Gloss/o - Örn: Glossit).", breakdown: "Lingu/o, Gloss/o (Dil)", category: "Sindirim Sistemi" },
+      { id: 145, term: "Palat/o & Uvula", reading: "Pa-la-to / U-vu-la", meaning: "Damak, ağız tavanı (Palat/o) ve yumuşak damağın arkasındaki küçük dil (Uvula).", breakdown: "Palat/o (Damak), Uv/a (Salkım) + -ula (Küçük dil)", category: "Sindirim Sistemi" },
+      { id: 146, term: "Ductus submandibularis", reading: "Duk-tus sub-man-di-bu-la-ris", meaning: "Alt çene altı tükürük bezinin ağız tabanına açılan boşaltım kanalı (Wharton kanalı).", breakdown: "Ductus (Kanal) + Sub- (Alt) + Mandibul/o (Alt çene)", category: "Sindirim Sistemi" },
+      { id: 147, term: "Oesophagus (Özofag/o-)", reading: "Ö-zo-fa-gus", meaning: "Yutak ile mide arasında uzanan yemek borusu.", breakdown: "Oesophag/o, Esophag/o (Yemek borusu)", category: "Sindirim Sistemi" },
+      { id: 148, term: "Gaster (Gastr/o-) & Gastritis", reading: "Gas-ter / Gas-tri-tis", meaning: "Mide (Gastr/o) ve mide mukozasının yangısı/iltihabı (Gastritis).", breakdown: "Gastr/o (Mide) + -itis (İltihap, enflamasyon)", category: "Sindirim Sistemi" },
+      { id: 149, term: "Pylorus & Sphincter", reading: "Pi-lo-rus / Sfink-ter", meaning: "Midenin onikiparmak bağırsağına açılan kapı bölümü (Pylorus) ve büzücü halka kas (Sphincter).", breakdown: "Pylor/o (Kapı bekçisi), Sphincter/o (Büzücü kas)", category: "Sindirim Sistemi" },
+      { id: 150, term: "Hyperemetic", reading: "Hi-per-e-me-tik", meaning: "Aşırı ve şiddetli kusma ile ilgili durum.", breakdown: "Hyper- (Aşırı) + Emet/o (Kusma) + -ic", category: "Sindirim Sistemi" },
+      { id: 151, term: "Enter/o & Intestin/o", reading: "En-te-ro / İn-tes-ti-no", meaning: "Bağırsak, özellikle ince bağırsak (Örn: Enterit, Gastroenteroloji).", breakdown: "Enter/o, Intestin/o (Bağırsak)", category: "Sindirim Sistemi" },
+      { id: 152, term: "Duoden/o, Jejun/o & Ile/o", reading: "Du-o-de-no / Je-ju-no / İ-le-o", meaning: "İnce bağırsağın üç bölümü: Onikiparmak bağırsağı (Duodenum), Boş bağırsak (Jejunum) ve Kıvrım bağırsak (Ileum).", breakdown: "Duoden/o (12 parmak), Jejun/o (Boş), Ile/o (Kıvrım)", category: "Sindirim Sistemi" },
+      { id: 153, term: "Caecum & Appendix", reading: "Se-kum / A-pen-diks", meaning: "Kalın bağırsağın başlangıç kısmı olan kör bağırsak (Caecum) ve solucan şeklindeki uzantısı (Appendix, çoğul: Appendices).", breakdown: "Caec/o (Kör bağırsak), Appendic/o (Ek, uzantı)", category: "Sindirim Sistemi" },
+      { id: 154, term: "Colon (Kol/o-)", reading: "Ko-lon / Ko-lo", meaning: "Kalın bağırsak (Örn: Colon descendens - inen kolon, Kolonoskopi).", breakdown: "Col/o, Colon/o (Kalın bağırsak)", category: "Sindirim Sistemi" },
+      { id: 155, term: "Diverticulum / Diverticula", reading: "Di-ver-ti-ku-lum / Di-ver-ti-ku-la", meaning: "Bağırsak veya mesane gibi içi boş bir organ duvarından dışa doğru oluşan keseleşme.", breakdown: "Diverticul/o (Yoldan sapma, keseleşme) + -um / -a", category: "Sindirim Sistemi" },
+      { id: 156, term: "Rect/o, Proct/o & Anus", reading: "Rek-to / Prok-to / A-nüs", meaning: "Düzbağırsak (Rectum), rektum ve anüs bölgesi (Proct/o) ve sindirim kanalının son açıklığı (Anus).", breakdown: "Rect/o (Düzbağırsak), Proct/o (Rektum/Anüs), An/o (Makat)", category: "Sindirim Sistemi" },
+      { id: 157, term: "Abdomen, Lapar/o & Coeliacus", reading: "Ab-do-men / La-pa-ro / Sö-li-a-kus", meaning: "Karın boşluğu (Abdomen, Coeli/o) ve karın duvarı/böğür (Lapar/o - Örn: Laparoskopi).", breakdown: "Abdomin/o, Lapar/o, Coeli/o (Karın)", category: "Sindirim Sistemi" },
+      { id: 158, term: "Peritone/o (Peritoneum)", reading: "Pe-ri-to-ne-o", meaning: "Karın boşluğu duvarını ve iç organları saran zar, karın zarı (periton).", breakdown: "Peritone/o (Karın zarı)", category: "Sindirim Sistemi" },
+      { id: 159, term: "Hepat/o (Hepatik/o-)", reading: "He-pa-to", meaning: "Karaciğer (Örn: Hepatit - karaciğer iltihabı, Hepatomegali).", breakdown: "Hepat/o (Karaciğer)", category: "Sindirim Sistemi" },
+      { id: 160, term: "Chol/e, Cholecyst/o & Choledoch/o", reading: "Ko-le / Ko-le-sis-to / Ko-le-do-ko", meaning: "Safra (Chol/e), Safra kesesi (Kolesist/o) ve Ana safra kanalı (Koledok/o).", breakdown: "Chol/e (Safra) + Cyst/o (Kese) / Choledoch/o (Safra kanalı)", category: "Sindirim Sistemi" },
+
+      // 7. Sinir Sistemi, Duyu Organları, Deri ve Endokrin
+      { id: 161, term: "Neuron & Nervus (Nör/o-)", reading: "Nö-ron / Ner-vus", meaning: "Sinir hücresi (Neuron) ve sinir lifi demeti (Nervus, çoğul: Nervi; kök: Neur/o).", breakdown: "Neur/o, Nerv/o (Sinir)", category: "Sinir Sistemi ve Duyular" },
+      { id: 162, term: "Encephal/o & Cerebr/o", reading: "En-se-fa-lo / Se-reb-ro", meaning: "Kafatası içindeki tüm beyin (Encephal/o) ve büyük beyin yarımküreleri (Cerebrum / Serebr/o).", breakdown: "Encephal/o, Cerebr/o (Beyin)", category: "Sinir Sistemi ve Duyular" },
+      { id: 163, term: "Cerebellum (Serebell/o-)", reading: "Se-re-bel-lum", meaning: "Beynin arka alt kısmında yer alan denge ve koordinasyon merkezi, beyincik.", breakdown: "Cerebr/o (Beyin) + -ellum (Küçültme eki: Beyincik)", category: "Sinir Sistemi ve Duyular" },
+      { id: 164, term: "Gyrus / Gyri & Thalamus", reading: "Ji-rus / Ji-ri / Ta-la-mus", meaning: "Beyin kabuğundaki kıvrımlar (Gyrus/Gyri) ve duyusal ara beyin çekirdeği (Thalamus).", breakdown: "Gyr/o (Kıvrım), Thalam/o (İç oda, talamus)", category: "Sinir Sistemi ve Duyular" },
+      { id: 165, term: "Poli/o & Myel/o (Miyel/o-)", reading: "Po-li-yo / Mi-ye-lo", meaning: "Sinir sistemindeki gri cevher (Poli/o) ve omurilik veya kemik iliği (Myel/o - Örn: Poliomiyelit).", breakdown: "Poli/o (Gri cevher), Myel/o (Omurilik / Kemik iliği)", category: "Sinir Sistemi ve Duyular" },
+      { id: 166, term: "Meninx / Meninges & Meningitis", reading: "Me-ninks / Me-nin-jes / Me-nin-ji-tis", meaning: "Beyin ve omuriliği saran zarlar (Meninx/Meninges) ve bu zarların iltihabı (Meningitis).", breakdown: "Mening/o (Beyin zarı) + -itis (İltihap)", category: "Sinir Sistemi ve Duyular" },
+      { id: 167, term: "Ganglion / Ganglia", reading: "Gang-li-yon / Gang-li-ya", meaning: "Merkezi sinir sistemi dışındaki sinir hücresi gövdesi kümeleri, sinir düğümü.", breakdown: "Gangli/o (Sinir düğümü) + -on / -a", category: "Sinir Sistemi ve Duyular" },
+      { id: 168, term: "Neuropathy & Paraplegia", reading: "Nö-ro-pa-ti / Pa-ra-ple-ji", meaning: "Sinir sistemi hastalığı (Neuropathy) ve belden aşağı her iki bacağın felci (Paraplegia).", breakdown: "Neur/o + -pathy (Hastalık) / Para- + -plegia (Felç)", category: "Sinir Sistemi ve Duyular" },
+      { id: 169, term: "Psych/o, Neurosis & Schizophrenia", reading: "Psi-ko / Nö-ro-zis / Şi-zof-re-ni", meaning: "Ruh/zihin (Psych/o), fonksiyonel sinirsel bozukluk (Neurosis) ve gerçeklik algısının bölündüğü psikoz (Schizophrenia).", breakdown: "Psych/o (Ruh), Schiz/o (Bölünme) + Phren/o (Zihin)", category: "Sinir Sistemi ve Duyular" },
+      { id: 170, term: "Ophthalm/o (Okül/o-) & Opt/o", reading: "Of-tal-mo / O-kü-lo / Op-to", meaning: "Göz (Grekçe: Ophthalm/o, Latince: Ocul/o) ve Görme/Görüş (Opt/o, Optic/o).", breakdown: "Ophthalm/o, Ocul/o (Göz), Opt/o (Görme)", category: "Sinir Sistemi ve Duyular" },
+      { id: 171, term: "Sclera (Scler/o) & Kerat/o", reading: "Skle-ra / Ke-ra-to", meaning: "Gözün sert beyaz dış tabakası (Sclera) ve gözün önündeki saydam kornea tabakası veya boynuzsu doku (Kerat/o).", breakdown: "Scler/o (Sert, sklera), Kerat/o (Kornea, boynuzsu doku)", category: "Sinir Sistemi ve Duyular" },
+      { id: 172, term: "Irid/o & Core/o (Kor/o-)", reading: "İ-ri-do / Ko-ro", meaning: "Gözün renkli kısmı olan iris (Irid/o) ve ortasındaki açıklık olan gözbebeği / pupilla (Core/o, Cor/o).", breakdown: "Irid/o (İris), Core/o (Gözbebeği)", category: "Sinir Sistemi ve Duyular" },
+      { id: 173, term: "Blephar/o, Canth/o, Cili/o & Lacrim/o", reading: "Ble-fa-ro / Kan-to / Si-li-yo / Lak-ri-mo", meaning: "Göz kapağı (Blefar/o), göz köşesi (Kant/o), kirpik (Sili/o) ve gözyaşı (Lakrim/o).", breakdown: "Blephar/o (Kapak), Canth/o (Köşe), Cili/o (Kirpik), Lacrim/o (Gözyaşı)", category: "Sinir Sistemi ve Duyular" },
+      { id: 174, term: "Ot/o, Auris & Audi/o (Odiy/o-)", reading: "O-to / Au-ris / O-di-yo", meaning: "Kulak (Grekçe: Ot/o, Latince: Auris, çoğul: Aures) ve İşitme duyusu (Audi/o).", breakdown: "Ot/o, Aur/i (Kulak), Audi/o (İşitme)", category: "Sinir Sistemi ve Duyular" },
+      { id: 175, term: "Myring/o (Mireng/o-), Tympan/o & Malleus", reading: "Mi-ren-go / Tim-pa-no / Mal-le-us", meaning: "Kulak zarı (Myring/o, Tympan/o) ve orta kulaktaki çekiç kemikçiği (Malleus).", breakdown: "Myring/o, Tympan/o (Kulak zarı), Malle/o (Çekiç)", category: "Sinir Sistemi ve Duyular" },
+      { id: 176, term: "Derm/o (Dermat/o-), Cutis & Hypodermis", reading: "Der-ma-to / Ku-tis / Hi-po-der-mis", meaning: "Deri, cilt (Grekçe: Derm/o, Dermat/o; Latince: Cutis, Cutane/o) ve deri altı dokusu (Hypodermis).", breakdown: "Derm/o, Cutane/o (Deri), Hypo- (Alt) + Dermis", category: "Sinir Sistemi ve Duyular" },
+      { id: 177, term: "Pil/o, Trich/o (Triş/o-) & Onych/o (Onik/o-)", reading: "Pi-lo / Tri-şo / O-ni-ko", meaning: "Kıl, saç (Latince: Pilus/Pili, Grekçe: Trich/o) ve Tırnak (Onych/o).", breakdown: "Pil/o, Trich/o (Saç, kıl), Onych/o (Tırnak)", category: "Sinir Sistemi ve Duyular" },
+      { id: 178, term: "Thyroid (Tir/o-) & Adren/o", reading: "Ti-ro-id / Ad-re-no", meaning: "Boynun önündeki tiroid bezi (Thyr/o; Euthyroid: normal tiroid işlevi) ve böbreküstü bezi (Adren/o).", breakdown: "Thyr/o (Kalkan), Ad- (Yanında) + Ren/o (Böbrek)", category: "Sinir Sistemi ve Duyular" },
+
+      // 8. Ürogenital Sistem
+      { id: 179, term: "Nephr/o (Nephros) & Ren/o", reading: "Nef-ro / Re-no", meaning: "Böbrek (Grekçe: Nephr/o, Latince: Ren/o; Nephron: böbreğin süzme yapan işlevsel birimi).", breakdown: "Nephr/o, Ren/o (Böbrek)", category: "Ürogenital Sistem" },
+      { id: 180, term: "Pronephros & Glomerulus", reading: "Pro-nef-roz / Glo-me-ru-lus", meaning: "Embriyonik öncü böbrek (Pronephros) ve böbrekte kanı süzen kılcal damar yumağı (Glomerulus).", breakdown: "Pro- (Öncü) + Nephr/o / Glomer/o (Küçük yumak)", category: "Ürogenital Sistem" },
+      { id: 181, term: "Pyel/o (Piyel/o-) & Calix / Calices", reading: "Pi-ye-lo / Ka-liks", meaning: "Böbrek havuzcuğu / pelvisi (Pyel/o) ve idrarı toplayan böbrek kadehleri (Calix/Calices).", breakdown: "Pyel/o (Böbrek pelvisi), Calic/o (Kadeh)", category: "Ürogenital Sistem" },
+      { id: 182, term: "Ur/o (Ürin/o-), Ureter/o & Urethr/o", reading: "Ü-ro / Ü-re-te-ro / Ü-ret-ro", meaning: "İdrar (Ur/o), üst idrar kanalı (Üreter/o) ve mesaneden dışarı açılan alt idrar kanalı (Üretr/o).", breakdown: "Ur/o (İdrar), Ureter/o (Üreter), Urethr/o (Üretra)", category: "Ürogenital Sistem" },
+      { id: 183, term: "Cyst/o (Sist/o-) & Vesic/o", reading: "Sis-to / Ve-zi-ko", meaning: "Kese, özellikle idrar kesesi / mesane (Grekçe: Cyst/o - Örn: Sistit; Latince: Vesic/o).", breakdown: "Cyst/o, Vesic/o (Kese, mesane)", category: "Ürogenital Sistem" },
+      { id: 184, term: "Gynec/o (Jinek/o-) & Oestrogen", reading: "Ji-ne-ko / Ös-tro-jen", meaning: "Kadın (Gynec/o - Örn: Jinekoloji) ve kadınlık hormonu (Oestrogen).", breakdown: "Gynec/o (Kadın), Oestr/o + -gen (Üreten)", category: "Ürogenital Sistem" },
+      { id: 185, term: "Ovarium, Oophor/o & Ovum / Ova", reading: "O-va-ri-yum / O-o-fo-ro / O-vum", meaning: "Yumurtalık / over (Latince: Ovarium, Grekçe: Oophor/o) ve dişi yumurta hücresi (Ovum, çoğul: Ova).", breakdown: "Ovari/o, Oophor/o (Yumurtalık), Ov/o (Yumurta)", category: "Ürogenital Sistem" },
+      { id: 186, term: "Salping/o", reading: "Sal-pin-go", meaning: "Rahim tüpü (Fallop tüpü / Tuba uterina) veya östaki borusu.", breakdown: "Salping/o (Tüp, boru)", category: "Ürogenital Sistem" },
+      { id: 187, term: "Uterus, Hyster/o (Hister/o-) & Metr/o", reading: "U-te-rus / His-te-ro / Met-ro", meaning: "Rahim, döl yatağı (Latince: Uterus, iyelik: Uteri; Grekçe: Hyster/o, Metr/o).", breakdown: "Uter/o, Hyster/o, Metr/o (Rahim)", category: "Ürogenital Sistem" },
+      { id: 188, term: "Vagina, Colp/o (Kolp/o-) & Episi/o", reading: "Va-ji-na / Kol-po / E-piz-yo", meaning: "Hazne, vajina (Latince: Vagina, Grekçe: Colp/o) ve kadın dış genital bölgesi / vulva (Episi/o).", breakdown: "Vagin/o, Colp/o (Vajina), Episi/o (Vulva)", category: "Ürogenital Sistem" },
+      { id: 189, term: "Mamm/o, Mast/o, Papill/o & Galact/o", reading: "Mam-mo / Mas-to / Ga-lak-to", meaning: "Meme (Mamm/o, Mast/o), meme başı (Papill/o; çevresi: Areola) ve Süt (Galact/o).", breakdown: "Mamm/o, Mast/o (Meme), Papill/o (Meme başı), Galact/o (Süt)", category: "Ürogenital Sistem" },
+      { id: 190, term: "Men/o, Nat/o, Foetus & Omphal/o", reading: "Me-no / Na-to / Fö-tus / Om-fa-lo", meaning: "Adet döngüsü/aybaşı (Men/o), Doğum (Nat/o), Anne karnındaki bebek (Foetus) ve Göbek (Omphal/o).", breakdown: "Men/o (Ay), Nat/o (Doğum), Foet/o (Fetüs), Omphal/o (Göbek)", category: "Ürogenital Sistem" },
+      { id: 191, term: "Orchid/o (Orşid/o-), Testicul/o & Spermatozoon", reading: "Or-şi-do / Tes-ti-kü-lo / Sper-ma-to-zo-on", meaning: "Erbezi, testis (Grekçe: Orchid/o, Latince: Testicul/o) ve erkek üreme hücresi (Spermatozoon, çoğul: Spermatozoa).", breakdown: "Orchid/o, Testicul/o (Testis), Spermat/o (Tohum) + Zo/o (Canlı)", category: "Ürogenital Sistem" },
+      { id: 192, term: "Phall/o (Fall/o-) & Balan/o", reading: "Fal-lo / Ba-la-no", meaning: "Penis, erkeklik organı (Phall/o) ve penis başı / glans penis (Balan/o).", breakdown: "Phall/o (Penis), Balan/o (Penis başı)", category: "Ürogenital Sistem" },
+
+      // 9. Sayılar, Sayısal Önekler ve Reçete Terminolojisi
+      { id: 193, term: "Unus, Duo, Tres, Quattuor, Quinque", reading: "U-nus / Du-o / Tres / Kvat-tu-or / Kvink-ve", meaning: "Latince 1'den 5'e asıl sayılar: 1 (Unus/Una/Unum), 2 (Duo/Duae), 3 (Tres/Tria), 4 (Quattuor), 5 (Quinque).", breakdown: "Numeralia cardinalia (1, 2, 3, 4, 5)", category: "Sayılar, Önekler ve Reçete" },
+      { id: 194, term: "Sex, Septem, Octo, Novem, Decem", reading: "Seks / Sep-tem / Ok-to / No-vem / De-sem", meaning: "Latince 6'dan 10'a asıl sayılar: 6 (Sex), 7 (Septem), 8 (Octo), 9 (Novem), 10 (Decem; 12: Duodecim).", breakdown: "Numeralia cardinalia (6, 7, 8, 9, 10)", category: "Sayılar, Önekler ve Reçete" },
+      { id: 195, term: "Primus, Secundus, Tertius, Quartus", reading: "Pri-mus / Se-kun-dus / Ter-si-yus / Kvar-tus", meaning: "Latince sıra sayı sıfatları: Birinci (Primus/-a/-um), İkinci (Secundus), Üçüncü (Tertius), Dördüncü (Quartus).", breakdown: "Örn: Costa prima (Birinci kaburga), Ostium primum (Birinci delik)", category: "Sayılar, Önekler ve Reçete" },
+      { id: 196, term: "Semel, Bis, Ter, Quater", reading: "Se-mel / Bis / Ter / Kva-ter", meaning: "Reçetelerde kullanılan Latince sayı zarfları: Bir kez (Semel), İki kez (Bis), Üç kez (Ter), Dört kez (Quater).", breakdown: "Numeralia adverbia (Eylem tekrar sıklığı)", category: "Sayılar, Önekler ve Reçete" },
+      { id: 197, term: "Bini, bis in die (2x2)", reading: "Bi-ni, bis in di-ye", meaning: "Reçete yazımında ilacın 'günde iki kez, ikişer adet' (2x2) alınacağını belirten klasik ifade.", breakdown: "Bini (İkişer - üleştirme) + Bis (İki kez) + In die (Günde)", category: "Sayılar, Önekler ve Reçete" },
+      { id: 198, term: "a.c. / i.c. / h.s. / p.o.", reading: "An-te si-bum / Ho-ra som-ni / Per os", meaning: "Reçete kısaltmaları: a.c. (ante cibum: yemekten önce), i.c. (inter cibos: yemek arası), h.s. (hora somni: yatarken), p.o. (per os: ağızdan).", breakdown: "Ante cibum, Inter cibos, Hora somni, Per os", category: "Sayılar, Önekler ve Reçete" },
+      { id: 199, term: "Uni- & Mono- (Unilateralis / Monoplegia)", reading: "U-ni-la-te-ra-lis / Mo-no-ple-ji", meaning: "Bir, tek önekleri: Unilateralis (tek taraflı), Unicellularis (tek hücreli), Monoplegia (tek uzuv felci).", breakdown: "Uni- (Latince: Tek) / Mono- (Grekçe: Tek)", category: "Sayılar, Önekler ve Reçete" },
+      { id: 200, term: "Bi- & Di- (Bilateralis / Biceps / Diplopia)", reading: "Bi-la-te-ra-lis / Bi-seps / Dip-lo-pi", meaning: "İki, çift önekleri: Bilateralis (iki taraflı), Biceps (iki başlı kas), Diplopia (çift görme), Diplegia (ikili felç).", breakdown: "Bi- (İki) / Di-, Dipl/o (Çift, ikili)", category: "Sayılar, Önekler ve Reçete" },
+      { id: 201, term: "Tri- & Tetra- (Triceps / Triangularis)", reading: "Tri-seps / Tri-an-gu-la-ris", meaning: "Üç (Tri-) ve Dört (Tetra-) önekleri: Triceps (üç başlı kas), Triangularis (üç köşeli).", breakdown: "Tri- (Üç) + -ceps (Baş) / Angul/o (Açı)", category: "Sayılar, Önekler ve Reçete" },
+      { id: 202, term: "Hemi- & Semi- (Hemithorax / Semilunaris)", reading: "He-mi-to-raks / Se-mi-lu-na-ris", meaning: "Yarım önekleri: Hemithorax (göğüs kafesinin yarısı), Semilunaris (yarımay şeklinde), Semicircularis (yarım daire).", breakdown: "Hemi- (Grekçe: Yarım) / Semi- (Latince: Yarım)", category: "Sayılar, Önekler ve Reçete" },
+      { id: 203, term: "Nulli-, Oligo-, Multi- & Poly-", reading: "Nul-li-pa-ra / Mul-ti-pa-ra", meaning: "Miktar önekleri: Nulli- (hiç: Nullipara - hiç doğurmamış), Oligo- (az), Multi- / Poly- (çok: Multipara - çok doğum yapmış).", breakdown: "Nulli- (Sıfır), Oligo- (Az), Multi- / Poly- (Çok)", category: "Sayılar, Önekler ve Reçete" }
+    ];
+
+    const STORAGE_KEY = "tibbi_terminoloji_learned_ids_v1";
+
+    const state = {
+      mode: "flashcards",
+      searchQuery: "",
+      selectedCategory: "ALL",
+      onlyFavorites: false,
+      learnedIds: new Set(),
+      filteredTerms: [...MEDICAL_TERMS],
+      currentIndex: 0,
+      isFlipped: false
+    };
+
+    function loadLearnedState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            state.learnedIds = new Set(parsed);
+          }
+        }
+      } catch (e) {
+        console.warn("LocalStorage okunamadı:", e);
+      }
+    }
+
+    function saveLearnedState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify([...state.learnedIds]));
+      } catch (e) {
+        console.warn("LocalStorage kaydedilemedi:", e);
+      }
+    }
+
+    const els = {
+      learnedCountLabel: document.getElementById("learnedCountLabel"),
+      tabFlashcards: document.getElementById("tabFlashcards"),
+      tabDictionary: document.getElementById("tabDictionary"),
+      viewFlashcards: document.getElementById("viewFlashcards"),
+      viewDictionary: document.getElementById("viewDictionary"),
+      searchInput: document.getElementById("searchInput"),
+      clearSearchBtn: document.getElementById("clearSearchBtn"),
+      categorySelect: document.getElementById("categorySelect"),
+      favFilterBtn: document.getElementById("favFilterBtn"),
+      flashcardContainer: document.getElementById("flashcardContainer"),
+      flashcardEmptyState: document.getElementById("flashcardEmptyState"),
+      cardCounterText: document.getElementById("cardCounterText"),
+      progressFill: document.getElementById("progressFill"),
+      cardCategoryIndicator: document.getElementById("cardCategoryIndicator"),
+      flashcardEl: document.getElementById("flashcardEl"),
+      frontCategoryBadge: document.getElementById("frontCategoryBadge"),
+      backCategoryBadge: document.getElementById("backCategoryBadge"),
+      frontTermText: document.getElementById("frontTermText"),
+      frontReadingText: document.getElementById("frontReadingText"),
+      backMeaningText: document.getElementById("backMeaningText"),
+      backBreakdownText: document.getElementById("backBreakdownText"),
+      frontSpeakBtn: document.getElementById("frontSpeakBtn"),
+      backSpeakBtn: document.getElementById("backSpeakBtn"),
+      frontFavBtn: document.getElementById("frontFavBtn"),
+      backFavBtn: document.getElementById("backFavBtn"),
+      prevCardBtn: document.getElementById("prevCardBtn"),
+      nextCardBtn: document.getElementById("nextCardBtn"),
+      flipCardBtn: document.getElementById("flipCardBtn"),
+      shuffleDeckBtn: document.getElementById("shuffleDeckBtn"),
+      dictCountLabel: document.getElementById("dictCountLabel"),
+      dictionaryGrid: document.getElementById("dictionaryGrid"),
+      dictEmptyState: document.getElementById("dictEmptyState")
+    };
+
+    function populateCategories() {
+      const categories = [...new Set(MEDICAL_TERMS.map((item) => item.category))];
+      categories.forEach((cat) => {
+        const count = MEDICAL_TERMS.filter((t) => t.category === cat).length;
+        const opt = document.createElement("option");
+        opt.value = cat;
+        opt.textContent = `${cat} (${count})`;
+        els.categorySelect.appendChild(opt);
+      });
+    }
+
+    function normalizeTR(str) {
+      return (str || "").toLocaleLowerCase("tr-TR").trim();
+    }
+
+    function applyFilters(resetIndex = true) {
+      const q = normalizeTR(state.searchQuery);
+
+      state.filteredTerms = MEDICAL_TERMS.filter((item) => {
+        if (state.selectedCategory !== "ALL" && item.category !== state.selectedCategory) {
+          return false;
+        }
+        if (state.onlyFavorites && !state.learnedIds.has(item.id)) {
+          return false;
+        }
+        if (q) {
+          const haystack = normalizeTR(
+            `${item.term} ${item.reading} ${item.meaning} ${item.breakdown} ${item.category}`
+          );
+          return haystack.includes(q);
+        }
+        return true;
+      });
+
+      if (resetIndex) {
+        state.currentIndex = 0;
+        state.isFlipped = false;
+      } else if (state.currentIndex >= state.filteredTerms.length) {
+        state.currentIndex = Math.max(0, state.filteredTerms.length - 1);
+      }
+
+      updateStatsHeader();
+      renderFlashcard();
+      renderDictionary();
+    }
+
+    function updateStatsHeader() {
+      els.learnedCountLabel.textContent = `${state.learnedIds.size} / ${MEDICAL_TERMS.length}`;
+    }
+
+    function renderFlashcard() {
+      const total = state.filteredTerms.length;
+      if (total === 0) {
+        els.flashcardContainer.style.display = "none";
+        els.flashcardEmptyState.style.display = "block";
+        return;
+      }
+
+      els.flashcardContainer.style.display = "flex";
+      els.flashcardEmptyState.style.display = "none";
+
+      const item = state.filteredTerms[state.currentIndex];
+      const isFav = state.learnedIds.has(item.id);
+
+      els.flashcardEl.classList.toggle("is-flipped", state.isFlipped);
+      els.cardCounterText.textContent = `Kart ${state.currentIndex + 1} / ${total}`;
+      els.progressFill.style.width = `${((state.currentIndex + 1) / total) * 100}%`;
+      els.cardCategoryIndicator.textContent = item.category;
+
+      els.frontCategoryBadge.textContent = item.category;
+      els.backCategoryBadge.textContent = item.category;
+      els.frontTermText.textContent = item.term;
+      els.frontReadingText.textContent = item.reading;
+      els.backMeaningText.textContent = item.meaning;
+      els.backBreakdownText.textContent = item.breakdown;
+
+      els.frontFavBtn.classList.toggle("fav-active", isFav);
+      els.backFavBtn.classList.toggle("fav-active", isFav);
+
+      els.prevCardBtn.disabled = total <= 1;
+      els.nextCardBtn.disabled = total <= 1;
+    }
+
+    function escapeHTML(str) {
+      const div = document.createElement("div");
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function renderDictionary() {
+      const list = state.filteredTerms;
+      els.dictCountLabel.textContent = `Toplam ${list.length} terim listeleniyor`;
+
+      if (list.length === 0) {
+        els.dictionaryGrid.innerHTML = "";
+        els.dictEmptyState.style.display = "block";
+        return;
+      }
+
+      els.dictEmptyState.style.display = "none";
+      els.dictionaryGrid.innerHTML = list
+        .map((item) => {
+          const isFav = state.learnedIds.has(item.id);
+          return `
+            <article class="dict-card" data-id="${item.id}">
+              <div class="dict-card-header">
+                <div class="dict-term-group">
+                  <h3 class="dict-term">${escapeHTML(item.term)}</h3>
+                  <span class="dict-reading">[${escapeHTML(item.reading)}]</span>
+                </div>
+                <div class="card-actions">
+                  <button type="button" class="icon-btn dict-speak-btn" data-id="${item.id}" title="Sesli Telaffuz" aria-label="${escapeHTML(item.term)} terimini sesli oku">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                  </button>
+                  <button type="button" class="icon-btn dict-fav-btn ${isFav ? "fav-active" : ""}" data-id="${item.id}" title="Öğrendiklerime Ekle" aria-label="Öğrendiklerime ekle">
+                    <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <p class="dict-meaning">${escapeHTML(item.meaning)}</p>
+              <div class="dict-breakdown">
+                <span class="dict-root-pill">🧬 ${escapeHTML(item.breakdown)}</span>
+                <span class="dict-cat-tag">${escapeHTML(item.category)}</span>
+              </div>
+            </article>
+          `;
+        })
+        .join("");
+    }
+
+    function toggleFavorite(id) {
+      if (state.learnedIds.has(id)) {
+        state.learnedIds.delete(id);
+      } else {
+        state.learnedIds.add(id);
+      }
+      saveLearnedState();
+      applyFilters(false);
+    }
+
+    function speakTerm(item) {
+      if (!("speechSynthesis" in window) || !item) return;
+      window.speechSynthesis.cancel();
+
+      const phoneticText = item.reading.replace(/-/g, "");
+      const utterance = new SpeechSynthesisUtterance(phoneticText);
+      utterance.lang = "tr-TR";
+      utterance.rate = 0.92;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function nextCard() {
+      if (state.filteredTerms.length === 0) return;
+      state.isFlipped = false;
+      state.currentIndex = (state.currentIndex + 1) % state.filteredTerms.length;
+      renderFlashcard();
+    }
+
+    function prevCard() {
+      if (state.filteredTerms.length === 0) return;
+      state.isFlipped = false;
+      state.currentIndex =
+        (state.currentIndex - 1 + state.filteredTerms.length) % state.filteredTerms.length;
+      renderFlashcard();
+    }
+
+    function flipCard() {
+      if (state.filteredTerms.length === 0) return;
+      state.isFlipped = !state.isFlipped;
+      els.flashcardEl.classList.toggle("is-flipped", state.isFlipped);
+    }
+
+    function shuffleDeck() {
+      if (state.filteredTerms.length <= 1) return;
+      for (let i = state.filteredTerms.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [state.filteredTerms[i], state.filteredTerms[j]] = [
+          state.filteredTerms[j],
+          state.filteredTerms[i]
+        ];
+      }
+      state.currentIndex = 0;
+      state.isFlipped = false;
+      renderFlashcard();
+      renderDictionary();
+    }
+
+    function switchMode(mode) {
+      state.mode = mode;
+      const isFlash = mode === "flashcards";
+      els.tabFlashcards.setAttribute("aria-selected", String(isFlash));
+      els.tabDictionary.setAttribute("aria-selected", String(!isFlash));
+      els.viewFlashcards.classList.toggle("active", isFlash);
+      els.viewDictionary.classList.toggle("active", !isFlash);
+    }
+
+    els.tabFlashcards.addEventListener("click", () => switchMode("flashcards"));
+    els.tabDictionary.addEventListener("click", () => switchMode("dictionary"));
+
+    els.searchInput.addEventListener("input", (e) => {
+      state.searchQuery = e.target.value;
+      els.clearSearchBtn.classList.toggle("visible", state.searchQuery.length > 0);
+      applyFilters(true);
+    });
+
+    els.clearSearchBtn.addEventListener("click", () => {
+      state.searchQuery = "";
+      els.searchInput.value = "";
+      els.clearSearchBtn.classList.remove("visible");
+      els.searchInput.focus();
+      applyFilters(true);
+    });
+
+    els.categorySelect.addEventListener("change", (e) => {
+      state.selectedCategory = e.target.value;
+      applyFilters(true);
+    });
+
+    els.favFilterBtn.addEventListener("click", () => {
+      state.onlyFavorites = !state.onlyFavorites;
+      els.favFilterBtn.setAttribute("aria-pressed", String(state.onlyFavorites));
+      applyFilters(true);
+    });
+
+    els.flashcardEl.addEventListener("click", (e) => {
+      if (e.target.closest("button")) return;
+      flipCard();
+    });
+
+    els.frontSpeakBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      speakTerm(state.filteredTerms[state.currentIndex]);
+    });
+
+    els.backSpeakBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      speakTerm(state.filteredTerms[state.currentIndex]);
+    });
+
+    els.frontFavBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const item = state.filteredTerms[state.currentIndex];
+      if (item) toggleFavorite(item.id);
+    });
+
+    els.backFavBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const item = state.filteredTerms[state.currentIndex];
+      if (item) toggleFavorite(item.id);
+    });
+
+    els.prevCardBtn.addEventListener("click", prevCard);
+    els.nextCardBtn.addEventListener("click", nextCard);
+    els.flipCardBtn.addEventListener("click", flipCard);
+    els.shuffleDeckBtn.addEventListener("click", shuffleDeck);
+
+    els.dictionaryGrid.addEventListener("click", (e) => {
+      const speakBtn = e.target.closest(".dict-speak-btn");
+      if (speakBtn) {
+        const id = Number(speakBtn.dataset.id);
+        const item = MEDICAL_TERMS.find((t) => t.id === id);
+        if (item) speakTerm(item);
+        return;
+      }
+
+      const favBtn = e.target.closest(".dict-fav-btn");
+      if (favBtn) {
+        const id = Number(favBtn.dataset.id);
+        toggleFavorite(id);
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      const activeTag = document.activeElement ? document.activeElement.tagName : "";
+      if (activeTag === "INPUT" || activeTag === "SELECT" || activeTag === "TEXTAREA") {
+        return;
+      }
+      if (state.mode !== "flashcards" || state.filteredTerms.length === 0) return;
+
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        nextCard();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        prevCard();
+      } else if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        flipCard();
+      } else if (e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        speakTerm(state.filteredTerms[state.currentIndex]);
+      } else if (e.key.toLowerCase() === "f") {
+        e.preventDefault();
+        const item = state.filteredTerms[state.currentIndex];
+        if (item) toggleFavorite(item.id);
+      }
+    });
+
+    loadLearnedState();
+    populateCategories();
+    applyFilters(true);
+  </script>
+</body>
+</html>
